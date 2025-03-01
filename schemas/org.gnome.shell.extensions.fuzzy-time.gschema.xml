@@ -1,5 +1,15 @@
 <schemalist>
   <schema id="org.gnome.shell.extensions.nearly-oclock" path="/org/gnome/shell/extensions/nearly-oclock/">
+    <key name="use-traditional" type="b">
+      <default>false</default>
+      <summary>Use traditional time format</summary>
+      <description>Whether to use a traditional time format instead of fuzzy time</description>
+    </key>
+    <key name="format" type="s">
+      <default>"%H:%M"</default>
+      <summary>Traditional time format</summary>
+      <description>GLib DateTime format string for traditional time display</description>
+    </key>
     <key name="fixed-width" type="b">
       <default>false</default>
       <summary>Use fixed width</summary>

@@ -12,11 +12,11 @@ let timeoutID = 0;
 export default class PanelDateFormatExtension extends Extension {
   enable() {
     this._settings = this.getSettings();
-    
+
     // Load CSS
     this._stylesheet = Gio.File.new_for_path(`${this.path}/stylesheet.css`);
     St.ThemeContext.get_for_stage(global.stage).get_theme().load_stylesheet(this._stylesheet);
-    
+
     originalClockDisplay = main.panel.statusArea.dateMenu._clockDisplay;
     formatClockDisplay = new St.Label({ style_class: "clock" });
     formatClockDisplay.clutter_text.y_align = Clutter.ActorAlign.CENTER;
@@ -28,7 +28,7 @@ export default class PanelDateFormatExtension extends Extension {
 
     // Connect to settings changes
     this._settingsChangedId = this._settings.connect('changed', this._onSettingsChanged.bind(this));
-    
+
     // Apply initial width setting
     this._updateWidthSetting();
 
@@ -36,7 +36,7 @@ export default class PanelDateFormatExtension extends Extension {
       this._tick();
       return GLib.SOURCE_CONTINUE;
     });
-    
+
     // Initial update
     this._tick();
   }
@@ -47,30 +47,30 @@ export default class PanelDateFormatExtension extends Extension {
       St.ThemeContext.get_for_stage(global.stage).get_theme().unload_stylesheet(this._stylesheet);
       this._stylesheet = null;
     }
-    
+
     if (this._settingsChangedId) {
       this._settings.disconnect(this._settingsChangedId);
       this._settingsChangedId = null;
     }
-    
+
     if (timeoutID) {
       GLib.Source.remove(timeoutID);
       timeoutID = 0;
     }
-    
+
     if (originalClockDisplay && formatClockDisplay) {
       originalClockDisplay.get_parent().remove_child(formatClockDisplay);
       originalClockDisplay.show();
       formatClockDisplay = null;
     }
-    
+
     this._settings = null;
   }
-  
+
   _onSettingsChanged() {
     this._updateWidthSetting();
   }
-  
+
   _updateWidthSetting() {
     if (this._settings.get_boolean('fixed-width')) {
       let width = this._settings.get_int('width');
@@ -81,14 +81,24 @@ export default class PanelDateFormatExtension extends Extension {
       formatClockDisplay.width = -1;
       formatClockDisplay.clutter_text.x_align = Clutter.ActorAlign.START;
     }
-  }  
-  
+  }
+
   _tick() {
-    let fuzzyTime = this._getFuzzyTime();
-    formatClockDisplay.set_text(fuzzyTime);
+    let text;
+    if (this._settings.get_boolean('use-traditional')) {
+      // Use traditional format
+      let format = this._settings.get_string('format');
+      let now = GLib.DateTime.new_now_local();
+      text = now.format(format);
+    } else {
+      // Use fuzzy time
+      text = this._getFuzzyTime();
+    }
+
+    formatClockDisplay.set_text(text);
     return true;
   }
-  
+
   _getFuzzyTime() {
     let now = new Date();
     let rawHour = now.getHours(); // 0–23 format
@@ -99,9 +109,9 @@ export default class PanelDateFormatExtension extends Extension {
     let nextHour12 = (rawHour + 1) % 12 || 12;
 
     const numbersToWords = {
-        1: "one", 2: "two", 3: "three", 4: "four", 5: "five",
-        6: "six", 7: "seven", 8: "eight", 9: "nine", 10: "ten",
-        11: "eleven", 12: "twelve"
+      1: "one", 2: "two", 3: "three", 4: "four", 5: "five",
+      6: "six", 7: "seven", 8: "eight", 9: "nine", 10: "ten",
+      11: "eleven", 12: "twelve"
     };
 
     let hourWord = numbersToWords[currentHour12];
@@ -109,54 +119,53 @@ export default class PanelDateFormatExtension extends Extension {
 
     let fuzzyTime = "";
 
-    // For the exact hour boundary (0-2 minutes)
     if (minute < 3) {
-        if (hourWord === "twelve") {
-            if (rawHour === 0) {
-                fuzzyTime = "midnight";
-            } else if (rawHour === 12) {
-                fuzzyTime = "noon";
-            } else {
-                fuzzyTime = `${hourWord} o'clock`;
-            }
+      if (hourWord === "twelve") {
+        if (rawHour === 0) {
+          fuzzyTime = "midnight";
+        } else if (rawHour === 12) {
+          fuzzyTime = "noon";
         } else {
-            fuzzyTime = `${hourWord} o'clock`;
+          fuzzyTime = `${hourWord} o'clock`;
         }
+      } else {
+        fuzzyTime = `${hourWord} o'clock`;
+      }
     } else if (minute < 8) {
-        fuzzyTime = `five past ${hourWord}`;
+      fuzzyTime = `five past ${hourWord}`;
     } else if (minute < 13) {
-        fuzzyTime = `ten past ${hourWord}`;
+      fuzzyTime = `ten past ${hourWord}`;
     } else if (minute < 18) {
-        fuzzyTime = `quarter past ${hourWord}`;
+      fuzzyTime = `quarter past ${hourWord}`;
     } else if (minute < 23) {
-        fuzzyTime = `twenty past ${hourWord}`;
+      fuzzyTime = `twenty past ${hourWord}`;
     } else if (minute < 28) {
-        fuzzyTime = `twenty-five past ${hourWord}`;
+      fuzzyTime = `twenty-five past ${hourWord}`;
     } else if (minute < 33) {
-        fuzzyTime = `half past ${hourWord}`;
+      fuzzyTime = `half past ${hourWord}`;
     } else if (minute < 38) {
-        fuzzyTime = `twenty-five to ${nextHourWord}`;
+      fuzzyTime = `twenty-five to ${nextHourWord}`;
     } else if (minute < 43) {
-        fuzzyTime = `twenty to ${nextHourWord}`;
+      fuzzyTime = `twenty to ${nextHourWord}`;
     } else if (minute < 48) {
-        fuzzyTime = `quarter to ${nextHourWord}`;
+      fuzzyTime = `quarter to ${nextHourWord}`;
     } else if (minute < 53) {
-        fuzzyTime = `ten to ${nextHourWord}`;
+      fuzzyTime = `ten to ${nextHourWord}`;
     } else if (minute < 58) {
-        fuzzyTime = `five to ${nextHourWord}`;
+      fuzzyTime = `five to ${nextHourWord}`;
     } else {
-        if (nextHourWord === "twelve") {
-            let nextRawHour = (rawHour + 1) % 24;
-            if (nextRawHour === 0) {
-                fuzzyTime = "midnight";
-            } else if (nextRawHour === 12) {
-                fuzzyTime = "noon";
-            } else {
-                fuzzyTime = `${nextHourWord} o'clock`;
-            }
+      if (nextHourWord === "twelve") {
+        let nextRawHour = (rawHour + 1) % 24;
+        if (nextRawHour === 0) {
+          fuzzyTime = "midnight";
+        } else if (nextRawHour === 12) {
+          fuzzyTime = "noon";
         } else {
-            fuzzyTime = `${nextHourWord} o'clock`;
+          fuzzyTime = `${nextHourWord} o'clock`;
         }
+      } else {
+        fuzzyTime = `${nextHourWord} o'clock`;
+      }
     }
 
     return fuzzyTime;
