@@ -151,6 +151,168 @@ export default class FuzzyTimePreferences extends ExtensionPreferences {
             Gio.SettingsBindFlags.DEFAULT
         );
 
+        // In your fillPreferencesWindow method
+        // Add word clock settings group
+        const wordClockGroup = new Adw.PreferencesGroup({
+            title: 'Word Clock Settings'
+        });
+
+        // Add precision dropdown
+        const precisionRow = new Adw.ActionRow({
+            title: 'Word Clock Precision',
+            subtitle: 'How precise the time description should be'
+        });
+
+        const precisionModel = new Gtk.StringList();
+        precisionModel.append('Hour Precision');
+        precisionModel.append('Half-hour Precision');
+        precisionModel.append('Quarter-hour Precision');
+        precisionModel.append('Five-minute Precision');
+        precisionModel.append('Minute Precision');
+
+        const precisionDropdown = new Gtk.DropDown({
+            model: precisionModel,
+            valign: Gtk.Align.CENTER
+        });
+
+        // Set the active option based on current setting
+        const precisionValue = settings.get_string('precision');
+        switch (precisionValue) {
+            case 'hour':
+                precisionDropdown.set_selected(0);
+                break;
+            case 'half-hour':
+                precisionDropdown.set_selected(1);
+                break;
+            case 'quarter-hour':
+                precisionDropdown.set_selected(2);
+                break;
+            case 'five-minute':
+                precisionDropdown.set_selected(3);
+                break;
+            case 'minute':
+                precisionDropdown.set_selected(4);
+                break;
+            default:
+                precisionDropdown.set_selected(2); // Default to quarter-hour
+        }
+
+        // Connect the signal to update settings when changed
+        precisionDropdown.connect('notify::selected', () => {
+            const selected = precisionDropdown.get_selected();
+            let value;
+            switch (selected) {
+                case 0:
+                    value = 'hour';
+                    break;
+                case 1:
+                    value = 'half-hour';
+                    break;
+                case 2:
+                    value = 'quarter-hour';
+                    break;
+                case 3:
+                    value = 'five-minute';
+                    break;
+                case 4:
+                    value = 'minute';
+                    break;
+                default:
+                    value = 'quarter-hour';
+            }
+            settings.set_string('precision', value);
+        });
+
+        precisionRow.add_suffix(precisionDropdown);
+        wordClockGroup.add(precisionRow);
+
+        page.add(wordClockGroup);
+
+        // Add capitalization dropdown after the precision dropdown
+        const capitalizationRow = new Adw.ActionRow({
+            title: 'Capitalization',
+            subtitle: 'How to capitalize the text'
+        });
+
+        const capitalizationModel = new Gtk.StringList();
+        capitalizationModel.append('First Letter Only');
+        capitalizationModel.append('All Words');
+        capitalizationModel.append('None');
+        capitalizationModel.append('ALL CAPS');
+
+        const capitalizationDropdown = new Gtk.DropDown({
+            model: capitalizationModel,
+            valign: Gtk.Align.CENTER
+        });
+
+        // Set the active option based on current setting
+        const capitalizationValue = settings.get_string('capitalization');
+        switch (capitalizationValue) {
+            case 'first':
+                capitalizationDropdown.set_selected(0);
+                break;
+            case 'all':
+                capitalizationDropdown.set_selected(1);
+                break;
+            case 'none':
+                capitalizationDropdown.set_selected(2);
+                break;
+            case 'uppercase':
+                capitalizationDropdown.set_selected(3);
+                break;
+            default:
+                capitalizationDropdown.set_selected(0); // Default to first
+        }
+
+        // Connect the signal to update settings when changed
+        capitalizationDropdown.connect('notify::selected', () => {
+            const selected = capitalizationDropdown.get_selected();
+            let value;
+            switch (selected) {
+                case 0:
+                    value = 'first';
+                    break;
+                case 1:
+                    value = 'all';
+                    break;
+                case 2:
+                    value = 'none';
+                    break;
+                case 3:
+                    value = 'uppercase';
+                    break;
+                default:
+                    value = 'first';
+            }
+            settings.set_string('capitalization', value);
+        });
+
+        capitalizationRow.add_suffix(capitalizationDropdown);
+        wordClockGroup.add(capitalizationRow);
+
+        // Add special times toggle
+        const specialTimesRow = new Adw.ActionRow({
+            title: 'Use Special Time Names',
+            subtitle: 'Use "noon" and "midnight" instead of "twelve o\'clock"'
+        });
+
+        const specialTimesToggle = new Gtk.Switch({
+            active: settings.get_boolean('use-special-times'),
+            valign: Gtk.Align.CENTER
+        });
+
+        settings.bind(
+            'use-special-times',
+            specialTimesToggle,
+            'active',
+            Gio.SettingsBindFlags.DEFAULT
+        );
+
+        specialTimesRow.add_suffix(specialTimesToggle);
+        specialTimesRow.activatable_widget = specialTimesToggle;
+        wordClockGroup.add(specialTimesRow);
+
+
         formatRow.add_suffix(formatEntry);
         formatGroup.add(formatRow);
 

@@ -3,12 +3,12 @@
     <key name="use-traditional" type="b">
       <default>false</default>
       <summary>Use traditional time format</summary>
-      <description>Whether to use a traditional time format instead of fuzzy time</description>
+      <description>Customize the clock format using GLib DateTime options</description>
     </key>
     <key name="format" type="s">
       <default>"%H:%M"</default>
-      <summary>Traditional time format</summary>
-      <description>GLib DateTime format string for traditional time display</description>
+      <summary>Traditional time format string</summary>
+      <description>GLib DateTime format: https://docs.gtk.org/glib/method.DateTime.format.html</description>
     </key>
     <key name="fixed-width" type="b">
       <default>false</default>
@@ -19,6 +19,21 @@
       <default>150</default>
       <summary>Clock width</summary>
       <description>Width of the clock in pixels when fixed width is enabled</description>
+    </key>
+    <key name="precision" type="s">
+      <default>'five-minute'</default>
+      <summary>Word clock precision</summary>
+      <description>How precise the word clock display should be</description>
+    </key>
+    <key name="capitalization" type="s">
+      <default>'first'</default>
+      <summary>Text capitalization</summary>
+      <description>Capitalize the word clock text</description>
+    </key>
+    <key name="use-special-times" type="b">
+      <default>true</default>
+      <summary>Use special time names</summary>
+      <description>Use special names for noon and midnight</description>
     </key>
   </schema>
 </schemalist>

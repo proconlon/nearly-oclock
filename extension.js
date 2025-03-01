@@ -104,6 +104,11 @@ export default class PanelDateFormatExtension extends Extension {
     let rawHour = now.getHours(); // 0–23 format
     let minute = now.getMinutes();
 
+    // Get settings
+    const precision = this._settings.get_string('precision');
+    const capitalization = this._settings.get_string('capitalization');
+    const useSpecialTimes = this._settings.get_boolean('use-special-times');
+
     // Convert to 12-hour numeric values
     let currentHour12 = rawHour % 12 || 12;
     let nextHour12 = (rawHour + 1) % 12 || 12;
@@ -119,8 +124,10 @@ export default class PanelDateFormatExtension extends Extension {
 
     let fuzzyTime = "";
 
-    if (minute < 3) {
-      if (hourWord === "twelve") {
+    // Handle different precision levels
+    if (precision === 'hour') {
+      // Use actual hour (no rounding)
+      if (hourWord === "twelve" && useSpecialTimes) {
         if (rawHour === 0) {
           fuzzyTime = "midnight";
         } else if (rawHour === 12) {
@@ -131,41 +138,136 @@ export default class PanelDateFormatExtension extends Extension {
       } else {
         fuzzyTime = `${hourWord} o'clock`;
       }
-    } else if (minute < 8) {
-      fuzzyTime = `five past ${hourWord}`;
-    } else if (minute < 13) {
-      fuzzyTime = `ten past ${hourWord}`;
-    } else if (minute < 18) {
-      fuzzyTime = `quarter past ${hourWord}`;
-    } else if (minute < 23) {
-      fuzzyTime = `twenty past ${hourWord}`;
-    } else if (minute < 28) {
-      fuzzyTime = `twenty-five past ${hourWord}`;
-    } else if (minute < 33) {
-      fuzzyTime = `half past ${hourWord}`;
-    } else if (minute < 38) {
-      fuzzyTime = `twenty-five to ${nextHourWord}`;
-    } else if (minute < 43) {
-      fuzzyTime = `twenty to ${nextHourWord}`;
-    } else if (minute < 48) {
-      fuzzyTime = `quarter to ${nextHourWord}`;
-    } else if (minute < 53) {
-      fuzzyTime = `ten to ${nextHourWord}`;
-    } else if (minute < 58) {
-      fuzzyTime = `five to ${nextHourWord}`;
-    } else {
-      if (nextHourWord === "twelve") {
-        let nextRawHour = (rawHour + 1) % 24;
-        if (nextRawHour === 0) {
-          fuzzyTime = "midnight";
-        } else if (nextRawHour === 12) {
-          fuzzyTime = "noon";
+    } else if (precision === 'half-hour') {
+      // Round to nearest half hour
+      if (minute < 15) { // 0–14 - display X o'clock
+        if (hourWord === "twelve" && useSpecialTimes) {
+          if (rawHour === 0) {
+            fuzzyTime = "midnight";
+          } else if (rawHour === 12) {
+            fuzzyTime = "noon";
+          } else {
+            fuzzyTime = `${hourWord} o'clock`;
+          }
+        } else {
+          fuzzyTime = `${hourWord} o'clock`;
+        }
+      } else if (minute < 45) { // 15–44 - display half past
+        fuzzyTime = `half past ${hourWord}`;
+      } else { // 45–59 - display next hour o'clock
+        if (nextHourWord === "twelve" && useSpecialTimes) {
+          let nextRawHour = (rawHour + 1) % 24;
+          if (nextRawHour === 0) {
+            fuzzyTime = "midnight";
+          } else if (nextRawHour === 12) {
+            fuzzyTime = "noon";
+          } else {
+            fuzzyTime = `${nextHourWord} o'clock`;
+          }
         } else {
           fuzzyTime = `${nextHourWord} o'clock`;
         }
-      } else {
-        fuzzyTime = `${nextHourWord} o'clock`;
       }
+    } else if (precision === 'quarter-hour') {
+      // Round to nearest quarter hour
+      if (minute < 8) { // 0–7 - display X o'clock
+        if (hourWord === "twelve" && useSpecialTimes) {
+          if (rawHour === 0) {
+            fuzzyTime = "midnight";
+          } else if (rawHour === 12) {
+            fuzzyTime = "noon";
+          } else {
+            fuzzyTime = `${hourWord} o'clock`;
+          }
+        } else {
+          fuzzyTime = `${hourWord} o'clock`;
+        }
+      } else if (minute < 23) { // 8–22 - display quarter past
+        fuzzyTime = `quarter past ${hourWord}`;
+      } else if (minute < 38) { // 23–37 - display half past
+        fuzzyTime = `half past ${hourWord}`;
+      } else if (minute < 53) { // 38–52 - display quarter to
+        fuzzyTime = `quarter to ${nextHourWord}`;
+      } else { // 53–59 - display next hour o'clock
+        if (nextHourWord === "twelve" && useSpecialTimes) {
+          let nextRawHour = (rawHour + 1) % 24;
+          if (nextRawHour === 0) {
+            fuzzyTime = "midnight";
+          } else if (nextRawHour === 12) {
+            fuzzyTime = "noon";
+          } else {
+            fuzzyTime = `${nextHourWord} o'clock`;
+          }
+        } else {
+          fuzzyTime = `${nextHourWord} o'clock`;
+        }
+      }
+    } else if (precision === 'five-minute') {
+      // Round to nearest 5 minutes
+      if (minute < 3) {
+        if (hourWord === "twelve" && useSpecialTimes) {
+          if (rawHour === 0) {
+            fuzzyTime = "midnight";
+          } else if (rawHour === 12) {
+            fuzzyTime = "noon";
+          } else {
+            fuzzyTime = `${hourWord} o'clock`;
+          }
+        } else {
+          fuzzyTime = `${hourWord} o'clock`;
+        }
+      } else if (minute < 8) {
+        fuzzyTime = `five past ${hourWord}`;
+      } else if (minute < 13) {
+        fuzzyTime = `ten past ${hourWord}`;
+      } else if (minute < 18) {
+        fuzzyTime = `quarter past ${hourWord}`;
+      } else if (minute < 23) {
+        fuzzyTime = `twenty past ${hourWord}`;
+      } else if (minute < 28) {
+        fuzzyTime = `twenty-five past ${hourWord}`;
+      } else if (minute < 33) {
+        fuzzyTime = `half past ${hourWord}`;
+      } else if (minute < 38) {
+        fuzzyTime = `twenty-five to ${nextHourWord}`;
+      } else if (minute < 43) {
+        fuzzyTime = `twenty to ${nextHourWord}`;
+      } else if (minute < 48) {
+        fuzzyTime = `quarter to ${nextHourWord}`;
+      } else if (minute < 53) {
+        fuzzyTime = `ten to ${nextHourWord}`;
+      } else if (minute < 58) {
+        fuzzyTime = `five to ${nextHourWord}`;
+      } else {
+        if (nextHourWord === "twelve" && useSpecialTimes) {
+          let nextRawHour = (rawHour + 1) % 24;
+          if (nextRawHour === 0) {
+            fuzzyTime = "midnight";
+          } else if (nextRawHour === 12) {
+            fuzzyTime = "noon";
+          } else {
+            fuzzyTime = `${nextHourWord} o'clock`;
+          }
+        } else {
+          fuzzyTime = `${nextHourWord} o'clock`;
+        }
+      }
+    } else if (precision === 'minute') {
+      // TODO: make it make sense
+      fuzzyTime = `${hourWord} o'clock`;
+    }
+
+    // Apply capitalization
+    if (capitalization === 'first') {
+      fuzzyTime = fuzzyTime.charAt(0).toUpperCase() + fuzzyTime.slice(1);
+    } else if (capitalization === 'all') {
+      fuzzyTime = fuzzyTime.split(' ').map(word =>
+        word.charAt(0).toUpperCase() + word.slice(1)
+      ).join(' ');
+    } else if (capitalization === 'uppercase') {
+      fuzzyTime = fuzzyTime.toUpperCase();
+    } else if (capitalization === 'none') {
+      // lowercase
     }
 
     return fuzzyTime;
