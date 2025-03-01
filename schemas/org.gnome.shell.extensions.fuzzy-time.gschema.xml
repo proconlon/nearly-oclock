@@ -1,0 +1,14 @@
+<schemalist>
+  <schema id="org.gnome.shell.extensions.nearly-oclock" path="/org/gnome/shell/extensions/nearly-oclock/">
+    <key name="fixed-width" type="b">
+      <default>false</default>
+      <summary>Use fixed width</summary>
+      <description>Whether to use a fixed width for the clock display</description>
+    </key>
+    <key name="width" type="i">
+      <default>150</default>
+      <summary>Clock width</summary>
+      <description>Width of the clock in pixels when fixed width is enabled</description>
+    </key>
+  </schema>
+</schemalist>
