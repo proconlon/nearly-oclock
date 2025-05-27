@@ -3,7 +3,7 @@
   "name": "Nearly O'Clock",
   "description": "Word clock modifier for GNOME shell.",
   "url": "https://github.com/proconlon/nearly-oclock",
-  "shell-version": ["45", "46", "47"],
+  "shell-version": ["45", "46", "47","48"],
   "settings-schema": "org.gnome.shell.extensions.nearly-oclock",
   "stylesheet": "stylesheet.css",
   "version": 3
